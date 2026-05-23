@@ -7,8 +7,7 @@ import QtQuick.Controls.Material
 Rectangle {
     id: connectionBar
 
-    width: monitor.width
-    height: 50
+    height: 92
     color: "transparent"
 
     required property var appController
@@ -16,10 +15,13 @@ Rectangle {
     readonly property bool wiredMode: appController.connectionMode === "wired"
 
     anchors {
-        left: parent.left
+        left: monitor.left
+        right: monitor.right
         leftMargin: 20
         rightMargin: 20
     }
+
+    clip: true
 
 
     Component.onCompleted: {
@@ -27,24 +29,25 @@ Rectangle {
         if (portManager.availablePortsList.length > 0)
             portManager.setComPort(portManager.availablePortsList[0])
     }
-
-    // com | baud | start button
+    // Mode selection
     RowLayout {
+        id: modeRow
         anchors {
             left: parent.left
             right: parent.right
-            verticalCenter: parent.verticalCenter
+            top: parent.top
+            topMargin: 6
             leftMargin: 10
             rightMargin: 10
         }
-        height: parent.height
-        spacing: 20
+        height: 34
+        spacing: 12
 
         Button {
             text: "Wired"
             highlighted: connectionBar.wiredMode
             Layout.preferredWidth: 100
-            Layout.preferredHeight: connectionBar.height * 0.6
+            Layout.preferredHeight: modeRow.height
             onClicked: appController.switchToWiredMode()
         }
 
@@ -52,17 +55,37 @@ Rectangle {
             text: "Wireless"
             highlighted: !connectionBar.wiredMode
             Layout.preferredWidth: 110
-            Layout.preferredHeight: connectionBar.height * 0.6
+            Layout.preferredHeight: modeRow.height
             onClicked: appController.switchToWirelessMode()
         }
 
+        Item {
+            Layout.fillWidth: true
+        }
+    }
+
+    // Serial controls
+    RowLayout {
+        id: serialControlsRow
+        visible: connectionBar.wiredMode
+        enabled: connectionBar.wiredMode
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: modeRow.bottom
+            topMargin: 8
+            leftMargin: 10
+            rightMargin: 10
+        }
+        height: 34
+        spacing: 12
+
         StyledComboBox {
             id: comSelection
-            visible: connectionBar.wiredMode
-            enabled: connectionBar.wiredMode
-            Layout.preferredWidth: 150
-            Layout.preferredHeight: connectionBar.height * 0.6
-            Layout.fillWidth: true
+            Layout.preferredWidth: 180
+            Layout.minimumWidth: 120
+            Layout.preferredHeight: serialControlsRow.height
+            // Layout.fillWidth: true
             model: portManager.availablePortsList.length > 0 ? portManager.availablePortsList : ["No COM Port found"]
             currentIndex: 0
 
@@ -84,11 +107,10 @@ Rectangle {
 
         StyledComboBox {
             id: baudSelection
-            visible: connectionBar.wiredMode
-            enabled: connectionBar.wiredMode
-            Layout.preferredWidth: 110
-            Layout.preferredHeight: connectionBar.height * 0.6
-            Layout.fillWidth: true
+            Layout.preferredWidth: 120
+            Layout.minimumWidth: 90
+            Layout.preferredHeight: serialControlsRow.height
+            // Layout.fillWidth: true
             model: [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
             currentIndex: 4
 
@@ -100,11 +122,10 @@ Rectangle {
 
         Button {
             id: startMonitor
-            visible: connectionBar.wiredMode
-            enabled: connectionBar.wiredMode
-            Layout.preferredWidth: 150
-            Layout.fillWidth: true
-            Layout.preferredHeight: connectionBar.height * 0.6
+            Layout.preferredWidth: 170
+            Layout.minimumWidth: 130
+            // Layout.fillWidth: true
+            Layout.preferredHeight: serialControlsRow.height
             Layout.alignment: Qt.AlignVCenter
 
             Material.accent: "#98FF98"
@@ -150,6 +171,10 @@ Rectangle {
             HoverHandler {
                 cursorShape: Qt.PointingHandCursor
             }
+        }
+
+        Item {
+            Layout.fillWidth: true
         }
     }
 

@@ -1,6 +1,6 @@
 # Project Context
 
-Last updated: 2026-05-21 20:05:49 +02:00
+Last updated: 2026-05-23 11:11:34 +02:00
 
 ## Current project structure relevant to this task
 
@@ -10,7 +10,7 @@ Last updated: 2026-05-21 20:05:49 +02:00
 - `ui/` contains QML UI files.
 - `ui/components/ConnectionBar.qml` is the top connection control bar.
 - `libs/qmsgpack/` is the bundled MsgPack dependency used by `SerialParser`.
-- `build/Desktop_Qt_6_11_1_MinGW_64_bit_Debug/` is an existing Qt Creator generated build directory.
+- `build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug/` is the current Qt Creator generated build directory.
 
 ## Existing serial data flow
 
@@ -70,6 +70,9 @@ Verified details only:
 - Added Wired and Wireless buttons to `ConnectionBar.qml`.
 - Hid and disabled the existing COM port, baud rate, and Start Monitor controls while wireless mode is active.
 - Added this context document and `docs/IMPLEMENTATION_LOG.md`.
+- Layout-only update on 2026-05-23: `ConnectionBar.qml` now places Wired/Wireless mode buttons in a separate top row.
+- The serial controls remain in a separate lower row and are still only visible/enabled in wired mode.
+- No C++ logic, parser logic, serial logic, graph, monitor, timeline, or UDP code was changed in the layout-only update.
 
 ## Why the change was made
 
@@ -101,14 +104,13 @@ The change prepares the UI for a future wireless input path while preserving the
 
 ## Build errors encountered and how they were fixed
 
-- `cmake --build build` failed because `cmake` was not on PATH in this shell.
-- The existing build cache showed CMake was generated with `E:/QT/Tools/CMake_64/bin/cmake.exe`.
-- Running that CMake executable directly initially failed during qmsgpack AutoMoc predefs generation because the MinGW compiler component could not run correctly from this shell.
-- `g++.exe --version` worked, but `cc1plus.exe --version` exited with code 1 and no output until the build command was run with `E:\QT\Tools\mingw1310_64\bin` prepended to PATH.
+- The earlier documented `E:/QT/Tools/CMake_64/bin/cmake.exe` path was not available in the 2026-05-23 shell.
+- The earlier documented `build/Desktop_Qt_6_11_1_MinGW_64_bit_Debug` build directory was not present.
+- The current build cache is under `build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug` and points to Qt tools under `C:/Qt`.
 - The successful build command was:
 
 ```powershell
-$env:Path = "E:\QT\Tools\mingw1310_64\bin;$env:Path"; & E:/QT/Tools/CMake_64/bin/cmake.exe --build build/Desktop_Qt_6_11_1_MinGW_64_bit_Debug
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;$env:Path"; & C:/Qt/Tools/CMake_64/bin/cmake.exe --build build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug
 ```
 
 ## Runtime/UI errors encountered and how they were fixed
@@ -120,7 +122,7 @@ Not confirmed yet. The desktop app was not launched during this step. QML compil
 - The requested wired/wireless UI mode switch exists.
 - Wireless mode currently only disconnects serial input and hides/disables serial controls.
 - No UDP or wireless input implementation has been added.
-- The project builds successfully with the command listed above.
+- The project builds successfully with the 2026-05-23 command listed in `docs/IMPLEMENTATION_LOG.md`.
 
 ## Next planned step
 

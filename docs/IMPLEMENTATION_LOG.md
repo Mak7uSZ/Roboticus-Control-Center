@@ -1,5 +1,53 @@
 # Implementation Log
 
+## 2026-05-23 11:11:34 +02:00
+
+Goal of this step: Fix the `ConnectionBar` QML layout so mode selection and serial controls are separated into two rows.
+
+Files inspected:
+
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `ui/components/ConnectionBar.qml`
+- `ui/Main.qml`
+- `include/controllers/AppController.h`
+- `src/controllers/AppController.cpp`
+- `ui/components/Monitor/Monitor.qml`
+- `ui/components/Graph/Graph.qml`
+- `CMakeLists.txt`
+- `build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug/CMakeCache.txt`
+
+Files changed:
+
+- `ui/components/ConnectionBar.qml`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+
+Summary of changes:
+
+- Increased the connection bar height to fit two rows.
+- Moved Wired/Wireless buttons into a dedicated top row.
+- Moved COM port, baud rate, and Start Monitor controls into a dedicated lower row.
+- Kept the lower serial controls visible and enabled only when `connectionMode` is `"wired"`.
+- Did not change C++ logic, parser logic, serial logic, graph, monitor, timeline, or UDP code.
+
+Errors encountered:
+
+- The previously documented `E:/QT/Tools/CMake_64/bin/cmake.exe` path was not available in this shell.
+- The previously documented `build/Desktop_Qt_6_11_1_MinGW_64_bit_Debug` directory did not exist. The current build directory is `build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug`.
+- Fixed by inspecting the current `CMakeCache.txt`, then building with the cached Qt tool paths under `C:/Qt`.
+
+Tests performed:
+
+```powershell
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;$env:Path"; & C:/Qt/Tools/CMake_64/bin/cmake.exe --build build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug
+```
+
+Result:
+
+- Build completed successfully: `[100%] Built target appRoboticus_Data_Visualiser`.
+- Runtime UI behavior: Not tested. The app was built but not launched.
+
 ## 2026-05-21 20:05:49 +02:00
 
 Goal of this step: Add a minimal, reversible wired/wireless UI mode switch without adding UDP transport yet.
