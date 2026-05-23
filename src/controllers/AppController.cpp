@@ -65,7 +65,12 @@ void AppController::switchToWirelessMode() {
   emit connectionModeChanged();
 }
 
-bool AppController::startWirelessMonitor(quint16 port) {
+bool AppController::startWirelessMonitor(int port) {
+  if (port <= 0 || port > 65535) {
+    emit errorOccurred("UDP port must be between 1 and 65535.");
+    return false;
+  }
+
   if (m_connectionMode != QStringLiteral("wireless")) {
     switchToWirelessMode();
   }
@@ -83,7 +88,7 @@ bool AppController::startWirelessMonitor(quint16 port) {
   }
 
   m_udpConnection->clearStatistics();
-  return m_udpConnection->startListening(port);
+  return m_udpConnection->startListening(static_cast<quint16>(port));
 }
 
 void AppController::stopWirelessMonitor() {
@@ -93,6 +98,12 @@ void AppController::stopWirelessMonitor() {
 
   if (m_parser) {
     m_parser->reset();
+  }
+}
+
+void AppController::reportConnectionError(const QString &message) {
+  if (!message.isEmpty()) {
+    emit errorOccurred(message);
   }
 }
 

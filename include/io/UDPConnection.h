@@ -1,8 +1,10 @@
 #pragma once
 
+#include <QAbstractSocket>
 #include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <QTimer>
 
 class QUdpSocket;
 
@@ -43,9 +45,17 @@ signals:
 
 private slots:
     void readPendingDatagrams();
+    void handleNoDatagramsTimeout();
+    void handleSocketError(QAbstractSocket::SocketError error);
 
 private:
+    void setError(const QString &message);
+    void clearError();
+
+    static constexpr int NoDatagramsTimeoutMs = 10000;
+
     QUdpSocket *m_socket = nullptr;
+    QTimer m_noDatagramsTimer;
     bool m_listening = false;
     quint16 m_port = 0;
     quint64 m_packetsReceived = 0;

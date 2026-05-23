@@ -7,13 +7,14 @@ import QtQuick.Controls.Material
 Rectangle {
     id: connectionBar
 
-    height: connectionBar.wiredMode ? 92 : 128
+    height: connectionBar.wiredMode || connectionBar.wirelessErrorMessage.length === 0 ? 92 : 116
     color: "transparent"
 
     required property var appController
     required property var portManager
     readonly property var udpConnection: appController.udpConnection
     readonly property bool wiredMode: appController.connectionMode === "wired"
+    readonly property string wirelessErrorMessage: udpPortError.length > 0 ? udpPortError : udpConnection.errorString
     property string udpPortError: ""
 
     anchors {
@@ -32,28 +33,36 @@ Rectangle {
             portManager.setComPort(portManager.availablePortsList[0])
     }
 
+    function showUdpError(message) {
+        udpPortError = message
+        appController.reportConnectionError(message)
+    }
+
     function startWirelessMonitor() {
         const portText = udpPortField.text.trim()
 
         if (portText.length === 0) {
-            udpPortError = "UDP port is required"
+            showUdpError("No UDP port entered. Please enter a UDP port to listen on.")
             return
         }
 
         if (!/^[0-9]+$/.test(portText)) {
-            udpPortError = "UDP port must be a number"
+            showUdpError("UDP port must contain only numbers. Remove letters or symbols.")
             return
         }
 
         const port = Number(portText)
         if (port <= 0 || port > 65535) {
-            udpPortError = "UDP port must be between 1 and 65535"
+            showUdpError("UDP port must be between 1 and 65535.")
             return
         }
 
         udpPortError = ""
-        if (!appController.startWirelessMonitor(port) && udpConnection.errorString.length > 0)
-            udpPortError = udpConnection.errorString
+        if (!appController.startWirelessMonitor(port)) {
+            udpPortError = udpConnection.errorString.length > 0
+                         ? udpConnection.errorString
+                         : "Failed to start UDP listener."
+        }
     }
 
     // Mode selection
@@ -92,8 +101,8 @@ Rectangle {
     }
 
     // Wireless controls
-    ColumnLayout {
-        id: wirelessControlsColumn
+    RowLayout {
+        id: wirelessControlsRow
         visible: !connectionBar.wiredMode
         enabled: !connectionBar.wiredMode
         anchors {
@@ -104,106 +113,143 @@ Rectangle {
             leftMargin: 10
             rightMargin: 10
         }
-        spacing: 6
+        height: 34
+        spacing: 12
 
-        RowLayout {
-            Layout.fillWidth: true
+        TextField {
+            id: udpPortField
+            text: "45454"
+            enabled: !udpConnection.listening
+            selectByMouse: true
+            inputMethodHints: Qt.ImhDigitsOnly
+            verticalAlignment: TextInput.AlignVCenter
+            color: "#98FF98"
+            selectionColor: "#98FF98"
+            selectedTextColor: "#0f0f0f"
+            leftPadding: 20
+            rightPadding: 12
+            Layout.preferredWidth: 180
+            Layout.minimumWidth: 120
             Layout.preferredHeight: 34
-            spacing: 12
-
-            TextField {
-                id: udpPortField
-                text: "45454"
-                placeholderText: "UDP port"
-                enabled: !udpConnection.listening
-                selectByMouse: true
-                inputMethodHints: Qt.ImhDigitsOnly
-                Layout.preferredWidth: 90
-                Layout.minimumWidth: 80
-                Layout.preferredHeight: 34
-                onTextChanged: udpPortError = ""
-                onAccepted: {
-                    if (!udpConnection.listening)
-                        connectionBar.startWirelessMonitor()
-                }
+            onTextChanged: udpPortError = ""
+            onAccepted: {
+                if (!udpConnection.listening)
+                    connectionBar.startWirelessMonitor()
             }
 
-            Button {
-                text: "Start Wireless Monitor"
-                visible: !udpConnection.listening
-                enabled: !udpConnection.listening
-                Layout.preferredWidth: 190
-                Layout.preferredHeight: 34
-                onClicked: connectionBar.startWirelessMonitor()
-            }
+            Material.accent: "#98FF98"
+            Material.foreground: "#98FF98"
 
-            Button {
-                text: "Stop Wireless Monitor"
-                visible: udpConnection.listening
-                enabled: udpConnection.listening
-                Layout.preferredWidth: 190
-                Layout.preferredHeight: 34
-                onClicked: {
-                    appController.stopWirelessMonitor()
-                    udpPortError = ""
+            background: Rectangle {
+                color: "#0f0f0f"
+                border.width: 2
+                border.color: udpPortField.hovered || udpPortField.activeFocus ? "#98FF98" : "#333333"
+                radius: 4
+
+                Behavior on border.color {
+                    ColorAnimation { duration: 150 }
                 }
             }
 
             Text {
-                text: udpConnection.listening ? "Listening" : "Stopped"
-                color: udpConnection.listening ? "#98FF98" : "#aaaaaa"
-                font.bold: true
+                visible: udpPortField.text.length === 0 && !udpPortField.activeFocus
+                text: "UDP port"
+                color: "#777777"
                 font.pixelSize: 13
-                Layout.preferredWidth: 72
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            Item {
-                Layout.fillWidth: true
+                elide: Text.ElideRight
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    verticalCenter: parent.verticalCenter
+                    leftMargin: udpPortField.leftPadding
+                    rightMargin: udpPortField.rightPadding
+                }
             }
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 18
-            spacing: 14
+        Button {
+            id: wirelessMonitorButton
+            Layout.preferredWidth: 210
+            Layout.minimumWidth: 170
+            Layout.preferredHeight: wirelessControlsRow.height
+            Layout.alignment: Qt.AlignVCenter
+
+            Material.accent: "#98FF98"
+            Material.foreground: "#98FF98"
+            Material.roundedScale: Button.None
+            Material.elevation: wirelessMonitorButton.hovered ? 3 : 1
 
             Text {
-                text: "Packets: " + udpConnection.packetsReceived
-                color: "#dddddd"
-                font.pixelSize: 12
-                Layout.alignment: Qt.AlignVCenter
+                anchors.centerIn: parent
+                color: "#98FF98"
+                text: udpConnection.listening ? "Stop Wireless Monitor" : "Start Wireless Monitor"
+                font.bold: true
+                font.pixelSize: 13
+                minimumPixelSize: 8
             }
 
-            Text {
-                text: "Bytes: " + udpConnection.bytesReceived
-                color: "#dddddd"
-                font.pixelSize: 12
-                Layout.alignment: Qt.AlignVCenter
+            background: Rectangle {
+                anchors.fill: parent
+                color: "#0f0f0f"
+                border.width: 2
+                border.color: wirelessMonitorButton.hovered ? "#98FF98" : "#333333"
+                radius: 4
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: "#1a1a1a"
+                    radius: 4
+                    opacity: wirelessMonitorButton.down ? 0.2 : 0
+                    Behavior on opacity {
+                        NumberAnimation { duration: 100 }
+                    }
+                }
             }
 
-            Text {
-                text: udpConnection.lastSenderAddress.length > 0
-                      ? "Last sender: " + udpConnection.lastSenderAddress + ":" + udpConnection.lastSenderPort
-                      : "Last sender: -"
-                color: "#dddddd"
-                font.pixelSize: 12
-                elide: Text.ElideRight
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
+            onClicked: {
+                if (udpConnection.listening) {
+                    appController.stopWirelessMonitor()
+                    udpPortError = ""
+                } else {
+                    connectionBar.startWirelessMonitor()
+                }
+            }
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
             }
         }
 
         Text {
-            readonly property string message: udpPortError.length > 0 ? udpPortError : udpConnection.errorString
-            visible: message.length > 0
-            text: message
-            color: "#ff8a8a"
-            font.pixelSize: 12
+            text: udpConnection.listening ? "Listening" : "Stopped"
+            color: udpConnection.listening ? "#98FF98" : "#aaaaaa"
+            font.bold: true
+            font.pixelSize: 13
             elide: Text.ElideRight
-            Layout.fillWidth: true
-            Layout.preferredHeight: visible ? 16 : 0
+            Layout.preferredWidth: 120
+            Layout.alignment: Qt.AlignVCenter
         }
+
+        Item {
+            Layout.fillWidth: true
+        }
+    }
+
+    Text {
+        visible: !connectionBar.wiredMode && connectionBar.wirelessErrorMessage.length > 0
+        text: connectionBar.wirelessErrorMessage
+        color: "#ff8a8a"
+        font.pixelSize: 12
+        elide: Text.ElideRight
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: wirelessControlsRow.bottom
+            topMargin: 4
+            leftMargin: 10
+            rightMargin: 10
+        }
+        height: visible ? 16 : 0
     }
 
     // Serial controls

@@ -95,10 +95,13 @@ public:
     Q_INVOKABLE void switchToWirelessMode();
 
     /** @brief Starts UDP listening in wireless mode without parsing datagrams. */
-    Q_INVOKABLE bool startWirelessMonitor(quint16 port);
+    Q_INVOKABLE bool startWirelessMonitor(int port);
 
     /** @brief Stops UDP listening if active. */
     Q_INVOKABLE void stopWirelessMonitor();
+
+    /** @brief Emits a user-facing connection error from QML validation. */
+    Q_INVOKABLE void reportConnectionError(const QString &message);
 
 signals:
     /** @brief Emitted whenever the snapshot store changes (frame received or file loaded). */

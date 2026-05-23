@@ -1,5 +1,102 @@
 # Implementation Log
 
+## 2026-05-23 12:19:34 +02:00
+
+Goal of this step: Add user-facing UDP connection errors matching the existing serial error flow.
+
+Files inspected:
+
+- `src/io/SerialPortManager.cpp`
+- `ui/components/Error.qml`
+- `include/io/UDPConnection.h`
+- `src/io/UDPConnection.cpp`
+- `include/controllers/AppController.h`
+- `src/controllers/AppController.cpp`
+- `ui/components/ConnectionBar.qml`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+
+Files changed:
+
+- `include/io/UDPConnection.h`
+- `src/io/UDPConnection.cpp`
+- `include/controllers/AppController.h`
+- `src/controllers/AppController.cpp`
+- `ui/components/ConnectionBar.qml`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+
+Summary of changes:
+
+- Added a 10 second no-datagram timeout in `UDPConnection`; if listening is active and no UDP packets arrive, it sets `errorString` and emits `errorOccurred`.
+- Added clearer UDP bind/socket errors through `UDPConnection`.
+- Added AppController forwarding for QML validation errors via `reportConnectionError`.
+- Updated Wireless UI validation so empty port input, letters/symbols, and out-of-range ports report through the same error popup path as serial errors.
+- Kept UDP packet/byte/last-sender tracking internally.
+- Did not connect UDP datagrams to `SerialParser` and did not change MsgPack parsing, serial, graph, model, monitor, or timeline logic.
+
+Errors encountered:
+
+- The first build compiled but failed at link because `appRoboticus_Data_Visualiser.exe` was still running and locked.
+- Stopped the running app process and reran the same build successfully.
+
+Tests performed:
+
+```powershell
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;$env:Path"; & C:/Qt/Tools/CMake_64/bin/cmake.exe --build build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug
+```
+
+Result:
+
+- Build completed successfully: `[100%] Built target appRoboticus_Data_Visualiser`.
+- Runtime validation and 10 second UDP timeout behavior were not manually tested in the UI during this step.
+
+## 2026-05-23 11:58:30 +02:00
+
+Goal of this step: Clean up the Wireless connection bar UI by hiding internal UDP debug statistics.
+
+Files inspected:
+
+- `ui/components/ConnectionBar.qml`
+- `include/controllers/AppController.h`
+- `src/controllers/AppController.cpp`
+- `include/io/UDPConnection.h`
+- `src/io/UDPConnection.cpp`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `ui/components/StyledComboBox.qml`
+
+Files changed:
+
+- `ui/components/ConnectionBar.qml`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+
+Summary of changes:
+
+- Removed visible Wireless UI debug fields for packets, bytes, and last sender from the main connection bar.
+- Kept the UDP port field, Start/Stop Wireless Monitor button, Listening/Stopped status, and validation/error text.
+- Restyled Wireless controls as a single lower row matching the existing Wired row spacing, height, green accent, dark input background, and monitor button treatment.
+- Kept UDP packet, byte, and last-sender statistics in `UDPConnection`; only their visible connection-bar labels were removed.
+- Did not change UDP transport logic, AppController logic, SerialParser, MsgPack parsing, SerialPortManager, graph, model, monitor, or timeline logic.
+- UDP datagrams remain disconnected from `SerialParser`.
+
+Errors encountered:
+
+- No code or build errors were encountered during this cleanup.
+
+Tests performed:
+
+```powershell
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;$env:Path"; & C:/Qt/Tools/CMake_64/bin/cmake.exe --build build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug
+```
+
+Result:
+
+- Build completed successfully: `[100%] Built target appRoboticus_Data_Visualiser`.
+- The app was launched with Qt and MinGW paths on `PATH`; it was still running after 5 seconds and was then stopped.
+- Visual UI inspection was not performed from this environment.
+
 ## 2026-05-23 11:36:15 +02:00
 
 Goal of this step: Add a UDP wireless listener/status layer without feeding UDP datagrams into telemetry parsing yet.

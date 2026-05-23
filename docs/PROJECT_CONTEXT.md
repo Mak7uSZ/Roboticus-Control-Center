@@ -1,6 +1,6 @@
 # Project Context
 
-Last updated: 2026-05-23 11:36:15 +02:00
+Last updated: 2026-05-23 12:19:34 +02:00
 
 ## Current project structure relevant to this task
 
@@ -80,9 +80,15 @@ Verified details only:
 - UDP update on 2026-05-23: added `UDPConnection` as a Qt Network/`QUdpSocket` listener with QML-visible listening state, port, packet count, byte count, last sender, and error string.
 - Added `AppController::udpConnection`, `startWirelessMonitor(quint16)`, and `stopWirelessMonitor()`.
 - Wireless mode stops serial and does not auto-start UDP. Wired mode stops UDP.
-- `ConnectionBar.qml` shows UDP controls in wireless mode with default port `45454`, start/stop buttons, status, statistics, last sender, and validation errors.
+- `ConnectionBar.qml` shows UDP controls in wireless mode with default port `45454`, start/stop button, listening/stopped status, and validation errors.
+- Wireless UI cleanup on 2026-05-23: visible debug fields for packets, bytes, and last sender were removed from the main connection bar.
+- UDP packet, byte, and last-sender statistics remain tracked internally in `UDPConnection`.
 - UDP emits `rawDataReceived(QByteArray)`, but it is not connected to `SerialParser`.
-- No MsgPack-over-UDP, RoboticusDebugger telemetry-over-UDP, parser, graph, monitor, model, or timeline behavior was implemented in the UDP update.
+- No UDP transport logic, parser logic, MsgPack-over-UDP, RoboticusDebugger telemetry-over-UDP, graph, monitor, model, or timeline behavior was changed in the wireless UI cleanup.
+- UDP connection error update on 2026-05-23: invalid UDP port input now emits user-facing errors through `AppController`.
+- `UDPConnection` now emits an error if no UDP packets are received within 10 seconds after listening starts or after the previous packet.
+- UDP bind and socket errors are still exposed through `UDPConnection::errorString` and `errorOccurred`.
+- UDP packet, byte, and last-sender statistics remain internal and UDP datagrams are still not connected to `SerialParser`.
 
 ## Why the change was made
 
@@ -120,6 +126,8 @@ The change prepares the UI for a future wireless input path while preserving the
 - The earlier documented `build/Desktop_Qt_6_11_1_MinGW_64_bit_Debug` build directory was not present.
 - The current build cache is under `build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug` and points to Qt tools under `C:/Qt`.
 - During the UDP update, an initial build stopped at automatic QML type registration without a useful diagnostic. A verbose rerun passed that step but hit the 120 second command timeout while compiling. A final build with a longer timeout completed successfully.
+- During the wireless UI cleanup, the same build command completed successfully and regenerated the `ConnectionBar.qml` QML cache.
+- During the UDP connection error update, the first build reached the link step but failed because `appRoboticus_Data_Visualiser.exe` was still running. After stopping that process, the same build command completed successfully.
 - The successful build command was:
 
 ```powershell
@@ -128,13 +136,16 @@ $env:Path = "C:\Qt\Tools\mingw1310_64\bin;$env:Path"; & C:/Qt/Tools/CMake_64/bin
 
 ## Runtime/UI errors encountered and how they were fixed
 
-Not confirmed yet. The desktop app was not launched during this step. QML compilation completed as part of the successful build.
+The app was launched briefly after the wireless UI cleanup and was still running after 5 seconds, then it was stopped. Visual UI inspection was not performed from this environment.
 
 ## Current status after the change
 
 - The requested wired/wireless UI mode switch exists.
 - Wireless mode disconnects serial input and shows UDP listener controls.
 - UDP listening is connection-test only and is not connected to telemetry parsing yet.
+- Wireless mode no longer shows packets, bytes, or last sender in the main connection bar.
+- Wireless UDP validation errors are shown for empty ports, letters/symbols, and ports outside `1..65535`.
+- Wireless UDP listening reports a timeout error if no packets arrive within 10 seconds.
 - Wired serial behavior is preserved and wired mode stops UDP listening if active.
 - The project builds successfully with the 2026-05-23 command listed in `docs/IMPLEMENTATION_LOG.md`.
 
