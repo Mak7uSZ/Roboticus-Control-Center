@@ -1,5 +1,54 @@
 # Implementation Log
 
+## 2026-05-23 13:32:27 +02:00
+
+Goal of this step: Fix the ConnectionBar wired/wireless layout and visible timeout/error behavior without changing backend telemetry logic.
+
+Files inspected:
+
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+- `ui/components/ConnectionBar.qml`
+- `ui/Main.qml`
+- `ui/components/StyledComboBox.qml`
+- `ui/components/Error.qml`
+- `include/io/UDPConnection.h`
+- `src/io/UDPConnection.cpp`
+
+Files changed:
+
+- `ui/components/ConnectionBar.qml`
+- `ui/Main.qml`
+- `docs/PROJECT_CONTEXT.md`
+- `docs/IMPLEMENTATION_LOG.md`
+
+Summary of changes:
+
+- Added a shared mode-button style in `ConnectionBar.qml` so selected Wired/Wireless buttons use green background with dark text, while inactive buttons keep dark background with white text.
+- Aligned the Wireless controls row with the Wired controls row by using shared row margins, height, spacing, and UDP field width.
+- Let the Wireless status text fill the remaining row width instead of leaving a trailing filler item, so the row uses available space more cleanly.
+- Stopped showing `udpConnection.errorString` directly as inline ConnectionBar text; inline wireless errors now come from local validation/start handling only.
+- Suppressed the no-datagram UDP timeout popup in `Main.qml` while keeping other error popups visible.
+- Did not change C++ telemetry routing, UDP listening, parser logic, SerialParser, SerialPortManager, AppController backend behavior, graph, monitor, timeline, or models.
+
+Errors encountered:
+
+- The first build reached the link step but failed because `appRoboticus_Data_Visualiser.exe` was still running and locked.
+- Stopped the running app process and reran the same build successfully.
+
+Tests performed:
+
+- Build command:
+
+```powershell
+$env:Path = "C:\Qt\Tools\mingw1310_64\bin;$env:Path"; & C:/Qt/Tools/CMake_64/bin/cmake.exe --build build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug
+```
+
+Result:
+
+- Build completed successfully: `[100%] Built target appRoboticus_Data_Visualiser`.
+- Runtime visual inspection was not performed during this step.
+
 ## 2026-05-23 12:28:10 +02:00
 
 Goal of this step: Implement app-side wireless telemetry by feeding UDP datagrams into the existing binary frame parser.

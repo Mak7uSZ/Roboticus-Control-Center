@@ -1,6 +1,6 @@
 # Project Context
 
-Last updated: 2026-05-23 12:28:10 +02:00
+Last updated: 2026-05-23 13:32:27 +02:00
 
 ## Current project structure relevant to this task
 
@@ -101,6 +101,10 @@ Verified details only:
 - UDP bind and socket errors are still exposed through `UDPConnection::errorString` and `errorOccurred`.
 - UDP packet, byte, and last-sender statistics remain internal.
 - Added minimal debug logs for UDP datagram size, UDP datagram first byte, wireless bytes reaching `SerialParser`, and successful `SerialParser::frameDecoded` emission.
+- ConnectionBar UI fix on 2026-05-23: active Wired/Wireless buttons now use green background with dark text, inactive mode buttons keep dark background with white text.
+- Wireless controls now share the same row margins, height, and spacing constants as the wired controls; the UDP field, Start/Stop Wireless Monitor button, and status text align across the full row.
+- ConnectionBar no longer displays `UDPConnection::errorString` as an inline wireless error; inline wireless errors are now limited to the validation/start errors assigned by the bar itself.
+- Main UI suppresses the no-datagram UDP timeout popup message so the previous 10 second "No UDP packets..." warning is no longer visible, while other connection errors remain visible.
 
 ## Why the change was made
 
@@ -160,7 +164,7 @@ The app was launched briefly after the wireless UI cleanup and was still running
 - UDP listening now feeds existing binary frames into telemetry parsing only while the wireless monitor is active.
 - Wireless mode no longer shows packets, bytes, or last sender in the main connection bar.
 - Wireless UDP validation errors are shown for empty ports, letters/symbols, and ports outside `1..65535`.
-- Wireless UDP listening reports a timeout error if no packets arrive within 10 seconds.
+- Wireless UDP listening no longer shows the old 10 second no-packets timeout warning in the UI.
 - Wireless UDP datagrams now feed the existing parser only while the wireless monitor is active.
 - Wired mode keeps serial behavior intact and disconnects/stops UDP parser input.
 - Wired serial behavior is preserved and wired mode stops UDP listening if active.

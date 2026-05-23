@@ -14,7 +14,15 @@ Rectangle {
     required property var portManager
     readonly property var udpConnection: appController.udpConnection
     readonly property bool wiredMode: appController.connectionMode === "wired"
-    readonly property string wirelessErrorMessage: udpPortError.length > 0 ? udpPortError : udpConnection.errorString
+    readonly property string wirelessErrorMessage: udpPortError
+    readonly property int rowMargin: 10
+    readonly property int controlRowHeight: 34
+    readonly property int controlSpacing: 12
+    readonly property int primaryControlWidth: 180
+    readonly property color accentColor: "#98FF98"
+    readonly property color darkTextColor: "#0f0f0f"
+    readonly property color controlBackgroundColor: "#0f0f0f"
+    readonly property color controlBorderColor: "#333333"
     property string udpPortError: ""
 
     anchors {
@@ -26,6 +34,53 @@ Rectangle {
 
     clip: true
 
+    component ModeButton: Button {
+        id: modeButton
+
+        required property bool selected
+
+        Layout.preferredHeight: connectionBar.controlRowHeight
+        Material.roundedScale: Button.None
+        Material.elevation: hovered ? 2 : 0
+
+        contentItem: Text {
+            text: modeButton.text
+            color: modeButton.selected ? connectionBar.darkTextColor : "#ffffff"
+            font.bold: true
+            font.pixelSize: 13
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
+
+        background: Rectangle {
+            color: modeButton.selected ? connectionBar.accentColor : connectionBar.controlBackgroundColor
+            border.width: 2
+            border.color: modeButton.selected || modeButton.hovered ? connectionBar.accentColor : connectionBar.controlBorderColor
+            radius: 4
+
+            Rectangle {
+                anchors.fill: parent
+                color: modeButton.selected ? "#ffffff" : connectionBar.accentColor
+                radius: 4
+                opacity: modeButton.down ? 0.16 : modeButton.hovered && !modeButton.selected ? 0.08 : 0
+                Behavior on opacity {
+                    NumberAnimation { duration: 100 }
+                }
+            }
+
+            Behavior on color {
+                ColorAnimation { duration: 120 }
+            }
+            Behavior on border.color {
+                ColorAnimation { duration: 120 }
+            }
+        }
+
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+    }
 
     Component.onCompleted: {
         portManager.setBaudRate(baudSelection.model[baudSelection.currentIndex])
@@ -73,25 +128,23 @@ Rectangle {
             right: parent.right
             top: parent.top
             topMargin: 6
-            leftMargin: 10
-            rightMargin: 10
+            leftMargin: connectionBar.rowMargin
+            rightMargin: connectionBar.rowMargin
         }
-        height: 34
-        spacing: 12
+        height: connectionBar.controlRowHeight
+        spacing: connectionBar.controlSpacing
 
-        Button {
+        ModeButton {
             text: "Wired"
-            highlighted: connectionBar.wiredMode
+            selected: connectionBar.wiredMode
             Layout.preferredWidth: 100
-            Layout.preferredHeight: modeRow.height
             onClicked: appController.switchToWiredMode()
         }
 
-        Button {
+        ModeButton {
             text: "Wireless"
-            highlighted: !connectionBar.wiredMode
+            selected: !connectionBar.wiredMode
             Layout.preferredWidth: 110
-            Layout.preferredHeight: modeRow.height
             onClicked: appController.switchToWirelessMode()
         }
 
@@ -110,11 +163,11 @@ Rectangle {
             right: parent.right
             top: modeRow.bottom
             topMargin: 8
-            leftMargin: 10
-            rightMargin: 10
+            leftMargin: connectionBar.rowMargin
+            rightMargin: connectionBar.rowMargin
         }
-        height: 34
-        spacing: 12
+        height: connectionBar.controlRowHeight
+        spacing: connectionBar.controlSpacing
 
         TextField {
             id: udpPortField
@@ -123,27 +176,29 @@ Rectangle {
             selectByMouse: true
             inputMethodHints: Qt.ImhDigitsOnly
             verticalAlignment: TextInput.AlignVCenter
-            color: "#98FF98"
-            selectionColor: "#98FF98"
-            selectedTextColor: "#0f0f0f"
+            color: connectionBar.accentColor
+            selectionColor: connectionBar.accentColor
+            selectedTextColor: connectionBar.darkTextColor
             leftPadding: 20
             rightPadding: 12
-            Layout.preferredWidth: 180
+            topPadding: 0
+            bottomPadding: 0
+            Layout.preferredWidth: connectionBar.primaryControlWidth
             Layout.minimumWidth: 120
-            Layout.preferredHeight: 34
+            Layout.preferredHeight: wirelessControlsRow.height
             onTextChanged: udpPortError = ""
             onAccepted: {
                 if (!udpConnection.listening)
                     connectionBar.startWirelessMonitor()
             }
 
-            Material.accent: "#98FF98"
-            Material.foreground: "#98FF98"
+            Material.accent: connectionBar.accentColor
+            Material.foreground: connectionBar.accentColor
 
             background: Rectangle {
-                color: "#0f0f0f"
+                color: connectionBar.controlBackgroundColor
                 border.width: 2
-                border.color: udpPortField.hovered || udpPortField.activeFocus ? "#98FF98" : "#333333"
+                border.color: udpPortField.hovered || udpPortField.activeFocus ? connectionBar.accentColor : connectionBar.controlBorderColor
                 radius: 4
 
                 Behavior on border.color {
@@ -169,19 +224,20 @@ Rectangle {
 
         Button {
             id: wirelessMonitorButton
-            Layout.preferredWidth: 210
-            Layout.minimumWidth: 170
+            Layout.preferredWidth: 230
+            Layout.minimumWidth: 190
+            Layout.maximumWidth: 260
             Layout.preferredHeight: wirelessControlsRow.height
             Layout.alignment: Qt.AlignVCenter
 
-            Material.accent: "#98FF98"
-            Material.foreground: "#98FF98"
+            Material.accent: connectionBar.accentColor
+            Material.foreground: connectionBar.accentColor
             Material.roundedScale: Button.None
             Material.elevation: wirelessMonitorButton.hovered ? 3 : 1
 
             Text {
                 anchors.centerIn: parent
-                color: "#98FF98"
+                color: connectionBar.accentColor
                 text: udpConnection.listening ? "Stop Wireless Monitor" : "Start Wireless Monitor"
                 font.bold: true
                 font.pixelSize: 13
@@ -190,9 +246,9 @@ Rectangle {
 
             background: Rectangle {
                 anchors.fill: parent
-                color: "#0f0f0f"
+                color: connectionBar.controlBackgroundColor
                 border.width: 2
-                border.color: wirelessMonitorButton.hovered ? "#98FF98" : "#333333"
+                border.color: wirelessMonitorButton.hovered ? connectionBar.accentColor : connectionBar.controlBorderColor
                 radius: 4
 
                 Rectangle {
@@ -222,16 +278,16 @@ Rectangle {
 
         Text {
             text: udpConnection.listening ? "Listening" : "Stopped"
-            color: udpConnection.listening ? "#98FF98" : "#aaaaaa"
+            color: udpConnection.listening ? connectionBar.accentColor : "#aaaaaa"
             font.bold: true
             font.pixelSize: 13
             elide: Text.ElideRight
+            horizontalAlignment: Text.AlignLeft
+            verticalAlignment: Text.AlignVCenter
+            Layout.fillWidth: true
+            Layout.minimumWidth: 100
             Layout.preferredWidth: 120
             Layout.alignment: Qt.AlignVCenter
-        }
-
-        Item {
-            Layout.fillWidth: true
         }
     }
 
@@ -246,8 +302,8 @@ Rectangle {
             right: parent.right
             top: wirelessControlsRow.bottom
             topMargin: 4
-            leftMargin: 10
-            rightMargin: 10
+            leftMargin: connectionBar.rowMargin
+            rightMargin: connectionBar.rowMargin
         }
         height: visible ? 16 : 0
     }
@@ -262,15 +318,15 @@ Rectangle {
             right: parent.right
             top: modeRow.bottom
             topMargin: 8
-            leftMargin: 10
-            rightMargin: 10
+            leftMargin: connectionBar.rowMargin
+            rightMargin: connectionBar.rowMargin
         }
-        height: 34
-        spacing: 12
+        height: connectionBar.controlRowHeight
+        spacing: connectionBar.controlSpacing
 
         StyledComboBox {
             id: comSelection
-            Layout.preferredWidth: 180
+            Layout.preferredWidth: connectionBar.primaryControlWidth
             Layout.minimumWidth: 120
             Layout.preferredHeight: serialControlsRow.height
             // Layout.fillWidth: true

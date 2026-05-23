@@ -15,13 +15,18 @@
         Material.theme: Material.Dark
         Material.accent: "#98FF98"
 
+        function shouldShowErrorPopup(message) {
+            return !message.startsWith("No UDP packets were received on port ")
+        }
+
         AppController {
             id: appController
             Component.onCompleted: setModels(sensorController.model, vectorController.model)
 
 
             onErrorOccurred: function (message) {
-                errorPopup.show(message);
+                if (window.shouldShowErrorPopup(message))
+                    errorPopup.show(message);
             }
 
             onSnapshotsChanged: function() {
