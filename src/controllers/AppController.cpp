@@ -44,11 +44,11 @@ void AppController::switchToWiredMode() {
 
   connectSerialInputToParser();
 
-  if (m_connectionMode == QStringLiteral("wired")) {
+  if (m_connectionMode == ConnectionMode::Wired) {
     return;
   }
 
-  m_connectionMode = QStringLiteral("wired");
+  m_connectionMode = ConnectionMode::Wired;
   emit connectionModeChanged();
 }
 
@@ -67,11 +67,11 @@ void AppController::switchToWirelessMode() {
     m_parser->reset();
   }
 
-  if (m_connectionMode == QStringLiteral("wireless")) {
+  if (m_connectionMode == ConnectionMode::Wireless) {
     return;
   }
 
-  m_connectionMode = QStringLiteral("wireless");
+  m_connectionMode = ConnectionMode::Wireless;
   emit connectionModeChanged();
 }
 
@@ -81,7 +81,7 @@ bool AppController::startWirelessMonitor(int port) {
     return false;
   }
 
-  if (m_connectionMode != QStringLiteral("wireless")) {
+  if (m_connectionMode != ConnectionMode::Wireless) {
     switchToWirelessMode();
   }
 
@@ -117,12 +117,6 @@ void AppController::stopWirelessMonitor() {
 
   if (m_parser) {
     m_parser->reset();
-  }
-}
-
-void AppController::reportConnectionError(const QString &message) {
-  if (!message.isEmpty()) {
-    emit errorOccurred(message);
   }
 }
 

@@ -21,10 +21,10 @@
  *        Owns the SerialPortManager and SerialParser. Holds weak (non-owning)
  *        pointers to the SensorModel and VectorModel, which are set after
  *        construction via setModels().
- */
-class AppController : public QObject {
+ */class AppController : public QObject {
     Q_OBJECT
     QML_ELEMENT
+    Q_ENUMS(ConnectionMode)
 
     /** @brief Exposes the port manager to QML so bindings like isConnected work. */
     Q_PROPERTY(SerialPortManager *portManager READ portManager CONSTANT)
@@ -39,16 +39,22 @@ class AppController : public QObject {
     Q_PROPERTY(int snapshotCount READ snapshotCount NOTIFY snapshotsChanged)
 
     /** @brief Active input mode. Supported values are "wired" and "wireless". */
-    Q_PROPERTY(QString connectionMode READ connectionMode NOTIFY connectionModeChanged)
+    Q_PROPERTY(ConnectionMode connectionMode READ connectionMode NOTIFY connectionModeChanged)
 
 public:
+    enum class ConnectionMode {
+        Wired,
+        Wireless
+    };
+
+
     explicit AppController(QObject *parent = nullptr);
 
+    UDPConnection *udpConnection() const { return m_udpConnection; }
     SerialPortManager *portManager() const { return m_portManager; }
     SerialParser *parser() const { return m_parser; }
-    UDPConnection *udpConnection() const { return m_udpConnection; }
     int snapshotCount() const { return m_snapshotStore.count(); }
-    QString connectionMode() const { return m_connectionMode; }
+    ConnectionMode connectionMode() const { return m_connectionMode; }
 
     /**
      * @brief Registers the active sensor and vector models with the controller.
@@ -100,9 +106,6 @@ public:
     /** @brief Stops UDP listening if active. */
     Q_INVOKABLE void stopWirelessMonitor();
 
-    /** @brief Emits a user-facing connection error from QML validation. */
-    Q_INVOKABLE void reportConnectionError(const QString &message);
-
 signals:
     /** @brief Emitted whenever the snapshot store changes (frame received or file loaded). */
     void snapshotsChanged();
@@ -128,7 +131,7 @@ private:
     SerialParser *m_parser = nullptr;
     UDPConnection *m_udpConnection = nullptr;
     QMetaObject::Connection m_udpParserConnection;
-    QString m_connectionMode = QStringLiteral("wired");
+    ConnectionMode m_connectionMode = ConnectionMode::Wired;
     SnapshotStore m_snapshotStore;
     SnapshotLoader m_snapshotLoader;
 

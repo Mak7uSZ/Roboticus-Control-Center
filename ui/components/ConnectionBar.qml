@@ -13,7 +13,7 @@ Rectangle {
     required property var appController
     required property var portManager
     readonly property var udpConnection: appController.udpConnection
-    readonly property bool wiredMode: appController.connectionMode === "wired"
+    readonly property bool wiredMode: appController.connectionMode === AppController.Wired
     readonly property int rowMargin: 10
     readonly property int controlRowHeight: 34
     readonly property int controlSpacing: 12
