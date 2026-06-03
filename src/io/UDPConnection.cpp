@@ -86,9 +86,6 @@ void UDPConnection::clearStatistics() {
   m_bytesReceived = 0;
   m_lastSenderAddress.clear();
   m_lastSenderPort = 0;
-
-  emit statisticsChanged();
-  emit lastSenderChanged();
 }
 
 void UDPConnection::readPendingDatagrams() {
@@ -127,8 +124,6 @@ void UDPConnection::readPendingDatagrams() {
 
   if (receivedAnyDatagram) {
     m_noDatagramsTimer.start();
-    emit statisticsChanged();
-    emit lastSenderChanged();
   }
 }
 

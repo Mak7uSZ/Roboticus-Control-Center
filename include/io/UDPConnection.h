@@ -13,10 +13,6 @@ class UDPConnection : public QObject {
 
     Q_PROPERTY(bool listening READ isListening NOTIFY listeningChanged)
     Q_PROPERTY(quint16 port READ port NOTIFY portChanged)
-    Q_PROPERTY(quint64 packetsReceived READ packetsReceived NOTIFY statisticsChanged)
-    Q_PROPERTY(quint64 bytesReceived READ bytesReceived NOTIFY statisticsChanged)
-    Q_PROPERTY(QString lastSenderAddress READ lastSenderAddress NOTIFY lastSenderChanged)
-    Q_PROPERTY(quint16 lastSenderPort READ lastSenderPort NOTIFY lastSenderChanged)
 
 public:
     explicit UDPConnection(QObject *parent = nullptr);
@@ -36,8 +32,6 @@ signals:
     void rawDataReceived(const QByteArray &data);
     void listeningChanged();
     void portChanged();
-    void statisticsChanged();
-    void lastSenderChanged();
     void errorOccurred(const QString &message);
 
 private slots:
