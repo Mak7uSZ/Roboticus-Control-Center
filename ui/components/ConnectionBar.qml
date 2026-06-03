@@ -12,16 +12,13 @@ Rectangle {
 
     required property var appController
     required property var portManager
-    readonly property var udpConnection: appController.udpConnection
+    required property var udpConnection
     readonly property bool wiredMode: appController.connectionMode === AppController.Wired
-    readonly property int rowMargin: 10
     readonly property int controlRowHeight: 34
     readonly property int controlSpacing: 12
     readonly property int primaryControlWidth: 180
-    readonly property int secondaryControlWidth: 120
     readonly property int monitorControlWidth: 220
     readonly property color accentColor: "#98FF98"
-    readonly property color darkTextColor: "#0f0f0f"
     readonly property color controlBackgroundColor: "#0f0f0f"
     readonly property color controlBorderColor: "#333333"
 
@@ -39,43 +36,49 @@ Rectangle {
 
         required property bool selected
 
-        Layout.preferredHeight: connectionBar.controlRowHeight
+        Layout.fillWidth: true;
+        Layout.minimumWidth: 96
+        Layout.preferredHeight: modeRow.height
+        Layout.alignment: Qt.AlignVCenter
+
+        Material.accent: "#98FF98"
+        Material.foreground: "#98FF98"
         Material.roundedScale: Button.None
-        Material.elevation: hovered ? 2 : 0
+        Material.elevation: modeButton.hovered ? 3 : 1
 
         contentItem: Text {
+            anchors {
+                left: parent.left
+                right: parent.right
+                verticalCenter: parent.verticalCenter
+            }
+            color: "#98FF98"
             text: modeButton.text
-            color: modeButton.selected ? connectionBar.darkTextColor : "#ffffff"
             font.bold: true
-            font.pixelSize: 13
+            font.pixelSize: 14
             minimumPixelSize: 8
-            fontSizeMode: Text.Fit
+            elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
         }
 
         background: Rectangle {
-            color: modeButton.selected ? connectionBar.accentColor : connectionBar.controlBackgroundColor
+            anchors.fill: parent
+            color: "#0f0f0f"
             border.width: 2
-            border.color: modeButton.selected || modeButton.hovered ? connectionBar.accentColor : connectionBar.controlBorderColor
+            border.color: modeButton.hovered || selected
+                          ? "#98FF98" : "#333333"
             radius: 4
 
+            // Pressed effect
             Rectangle {
                 anchors.fill: parent
-                color: modeButton.selected ? "#ffffff" : connectionBar.accentColor
+                color: "#1a1a1a"
                 radius: 4
-                opacity: modeButton.down ? 0.16 : modeButton.hovered && !modeButton.selected ? 0.08 : 0
+                opacity: modeButton.down ? 0.2 : 0
                 Behavior on opacity {
                     NumberAnimation { duration: 100 }
                 }
-            }
-
-            Behavior on color {
-                ColorAnimation { duration: 120 }
-            }
-            Behavior on border.color {
-                ColorAnimation { duration: 120 }
             }
         }
 
@@ -98,27 +101,20 @@ Rectangle {
             right: parent.right
             top: parent.top
             topMargin: 6
-            leftMargin: connectionBar.rowMargin
-            rightMargin: connectionBar.rowMargin
+            bottomMargin: 6
         }
         height: connectionBar.controlRowHeight
-        spacing: connectionBar.controlSpacing
+
 
         ModeButton {
             text: "Wired"
             selected: connectionBar.wiredMode
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            Layout.minimumWidth: 72
             onClicked: appController.switchToWiredMode()
         }
 
         ModeButton {
             text: "Wireless"
             selected: !connectionBar.wiredMode
-            Layout.fillWidth: true
-            Layout.preferredWidth: 1
-            Layout.minimumWidth: 84
             onClicked: appController.switchToWirelessMode()
         }
     }
@@ -133,8 +129,6 @@ Rectangle {
             right: parent.right
             top: modeRow.bottom
             topMargin: 8
-            leftMargin: connectionBar.rowMargin
-            rightMargin: connectionBar.rowMargin
         }
         height: connectionBar.controlRowHeight
         spacing: connectionBar.controlSpacing
@@ -164,7 +158,7 @@ Rectangle {
                 visible: udpPortField.text.length === 0 && !udpPortField.activeFocus
                 text: "UDP port"
                 color: "#777777"
-                font.pixelSize: 13
+                font.pixelSize: 14
                 elide: Text.ElideRight
                 anchors {
                     left: parent.left
@@ -184,8 +178,8 @@ Rectangle {
                 validator: RegularExpressionValidator { regularExpression: /^[0-9]{1,5}$/ } // only allow integers
                 color: connectionBar.accentColor
                 selectionColor: connectionBar.accentColor
-                selectedTextColor: connectionBar.darkTextColor
-                font.pixelSize: 13
+                selectedTextColor: "#0f0f0f"
+                font.pixelSize: 14
                 anchors {
                     left: parent.left
                     right: parent.right
@@ -218,15 +212,12 @@ Rectangle {
                     left: parent.left
                     right: parent.right
                     verticalCenter: parent.verticalCenter
-                    leftMargin: 10
-                    rightMargin: 10
                 }
                 color: connectionBar.accentColor
                 text: udpConnection.listening ? "Stop Wireless Monitor" : "Start Wireless Monitor"
                 font.bold: true
-                font.pixelSize: 13
+                font.pixelSize: 14
                 minimumPixelSize: 8
-                fontSizeMode: Text.Fit
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -267,9 +258,9 @@ Rectangle {
             text: udpConnection.listening ? "Listening" : "Stopped"
             color: udpConnection.listening ? connectionBar.accentColor : "#aaaaaa"
             font.bold: true
-            font.pixelSize: 13
+            font.pixelSize: 14
             elide: Text.ElideRight
-            horizontalAlignment: Text.AlignLeft
+            horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             Layout.fillWidth: true
             Layout.minimumWidth: 58
@@ -289,8 +280,6 @@ Rectangle {
             right: parent.right
             top: modeRow.bottom
             topMargin: 8
-            leftMargin: connectionBar.rowMargin
-            rightMargin: connectionBar.rowMargin
         }
         height: connectionBar.controlRowHeight
         spacing: connectionBar.controlSpacing
@@ -323,7 +312,7 @@ Rectangle {
         StyledComboBox {
             id: baudSelection
             Layout.fillWidth: true
-            Layout.preferredWidth: connectionBar.secondaryControlWidth
+            Layout.preferredWidth: 120
             Layout.minimumWidth: 68
             Layout.preferredHeight: serialControlsRow.height
             model: [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
@@ -361,7 +350,6 @@ Rectangle {
                 font.bold: true
                 font.pixelSize: 14
                 minimumPixelSize: 8
-                fontSizeMode: Text.Fit
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -401,14 +389,13 @@ Rectangle {
 
     // Green line below to divide the connection bar
     Rectangle {
-        width: parent.width - 20
         height: 2
         color: "#98FF98"
         opacity: 0.6
         anchors {
             left: parent.left
+            right: parent.right
             bottom: parent.bottom
-            leftMargin: 10
         }
     }
 }

@@ -125,6 +125,7 @@
 
             appController: appController
             portManager: appController.portManager
+            udpConnection: appController.udpConnection
         }
 
         Monitor {
