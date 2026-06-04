@@ -6,11 +6,6 @@
 #include <QUdpSocket>
 
 UDPConnection::UDPConnection(QObject *parent) : QObject(parent) {
-  m_noDatagramsTimer.setSingleShot(true);
-  m_noDatagramsTimer.setInterval(NoDatagramsTimeoutMs);
-
-  connect(&m_noDatagramsTimer, &QTimer::timeout, this,
-          &UDPConnection::handleNoDatagramsTimeout);
 }
 
 bool UDPConnection::startListening(quint16 port) {
