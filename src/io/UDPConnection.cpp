@@ -47,7 +47,6 @@ bool UDPConnection::startListening(quint16 port) {
 
   m_port = port;
   m_listening = true;
-  m_noDatagramsTimer.start();
 
   if (portChangedNeeded) {
     emit portChanged();
@@ -61,7 +60,6 @@ bool UDPConnection::startListening(quint16 port) {
 
 void UDPConnection::stopListening() {
   const bool wasListening = m_listening;
-  m_noDatagramsTimer.stop();
 
   if (m_socket) {
     disconnect(m_socket, &QUdpSocket::readyRead, this,
@@ -115,10 +113,6 @@ void UDPConnection::readPendingDatagrams() {
 
     receivedAnyDatagram = true;
     emit rawDataReceived(data);
-  }
-
-  if (receivedAnyDatagram) {
-    m_noDatagramsTimer.start();
   }
 }
 

@@ -4,7 +4,6 @@
 #include <QByteArray>
 #include <QObject>
 #include <QString>
-#include <QTimer>
 
 class QUdpSocket;
 
@@ -43,7 +42,6 @@ private:
     static constexpr int NoDatagramsTimeoutMs = 10000;
 
     QUdpSocket *m_socket = nullptr;
-    QTimer m_noDatagramsTimer;
     bool m_listening = false;
     quint16 m_port = 0;
     quint64 m_packetsReceived = 0;
