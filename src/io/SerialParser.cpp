@@ -5,6 +5,10 @@
 
 SerialParser::SerialParser(QObject *parent) : QObject(parent) {}
 
+void SerialParser::reset() {
+  m_frameExtractor.reset();
+}
+
 void SerialParser::onRawDataReady(const QByteArray &data) {
   m_frameExtractor.appendData(data);
   const QList<QByteArray> frames = m_frameExtractor.takeCompleteFrames();

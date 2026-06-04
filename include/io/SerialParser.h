@@ -14,6 +14,9 @@ class SerialParser : public QObject {
 public:
     explicit SerialParser(QObject *parent = nullptr);
 
+    /** @brief Clears any incomplete frame bytes waiting in the extractor. */
+    void reset();
+
 signals:
     /** @brief Emitted when a complete frame has been successfully decoded. */
     void frameDecoded(const DecodedFrame &frame);

@@ -7,6 +7,18 @@ ComboBox {
 
     Material.accent: "#98FF98"
     Material.foreground: "#98FF98"
+    leftPadding: 14
+    rightPadding: 32
+
+    contentItem: Text {
+        text: root.displayText
+        color: "#98FF98"
+        font: root.font
+        elide: Text.ElideRight
+        horizontalAlignment: Text.AlignLeft
+        verticalAlignment: Text.AlignVCenter
+        clip: true
+    }
 
     background: Rectangle {
         color: "#0f0f0f"

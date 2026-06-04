@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 1. Find Packages
-find_package(Qt6 REQUIRED COMPONENTS Quick Graphs SerialPort Gui)
+find_package(Qt6 REQUIRED COMPONENTS Quick Graphs SerialPort Gui Network)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -87,6 +87,8 @@ qt_add_qml_module(appRoboticus_Data_Visualiser
         "src/io/SerialParser.cpp"
         "include/io/SerialPortManager.h"
         "src/io/SerialPortManager.cpp"
+        "include/io/UDPConnection.h"
+        "src/io/UDPConnection.cpp"
 
         # Parser (Pure Logic)
         "include/parser/FrameTypes.h"
@@ -116,6 +118,7 @@ target_link_libraries(appRoboticus_Data_Visualiser
         Qt6::Graphs
         Qt6::SerialPort
         Qt6::Gui
+        Qt6::Network
         qmsgpack
 )
 

@@ -47,3 +47,9 @@ QList<QByteArray> SerialFrameExtractor::takeCompleteFrames()
 
     return frames;
 }
+
+
+void SerialFrameExtractor::reset()
+{
+    m_buffer.clear();
+}

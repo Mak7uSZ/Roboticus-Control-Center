@@ -23,7 +23,9 @@ public:
      */
     QList<QByteArray> takeCompleteFrames();
 
+    /** @brief Clears any incomplete bytes currently buffered. */
+    void reset();
+
 private:
     QByteArray m_buffer;
 };
-

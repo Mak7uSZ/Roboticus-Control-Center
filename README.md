@@ -26,7 +26,7 @@ The app expects framed MsgPack packets over serial. Example senders are included
 
 ## Features
 
-- **Live serial monitoring** with selectable COM/TTY port and baud rate
+- **Wired/Wireless(UDP) live serial monitoring** with selectable COM/TTY port and baud rate
 - **2D graph visualisation** of sensors (value, threshold, triggered state, x/y position) and vectors (rotation, colour, x/y position)
 - **Layer-based filtering** for sensors and vectors
 - **Timeline playback/scrubbing** across captured frames
@@ -36,12 +36,13 @@ The app expects framed MsgPack packets over serial. Example senders are included
 ## Getting Started
 
 1. Launch the app.
-2. Select a serial port and baud rate in the top connection bar.
-3. Click **Start Monitor**.
-4. Stream telemetry from your microcontroller using the [RoboticusDebugger](https://github.com/sSpectrals/RoboticusDebugger) Arduino library.
-5. Use the left panel to inspect sensors/vectors and switch layers.
-6. Hover over a sensor in the graph to see individual values.
-7. Use the bottom timeline to scrub frames, step backward/forward, save the session, or load a previous JSON snapshot.
+2. Select wired or wireless.
+3. Select a serial port and baud rate in the top connection bar.
+4. Click **Start Monitor**.
+5. Stream telemetry from your microcontroller using the [RoboticusDebugger](https://github.com/sSpectrals/RoboticusDebugger) Arduino library.
+6. Use the left panel to inspect sensors/vectors and switch layers.
+7. Hover over a sensor in the graph to see individual values.
+8. Use the bottom timeline to scrub frames, step backward/forward, save the session, or load a previous JSON snapshot.
 
 ## Installation
 
@@ -90,6 +91,8 @@ Frames are MsgPack payloads with this wire format:
 **`timestamp_ms`:** integer milliseconds (`millis()` on Arduino)
 
 Frames with empty sensors and vectors are ignored. Payloads outside expected size bounds are rejected by the frame extractor.
+
+Wifi uses the UDP format!
 
 ## Snapshot JSON Format
 
