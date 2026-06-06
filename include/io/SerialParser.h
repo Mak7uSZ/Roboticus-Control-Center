@@ -35,14 +35,15 @@ public slots:
      */
     void onRawDataReady(const QByteArray &data);
 
-private:
-    SerialFrameExtractor m_frameExtractor;
-
     /**
-     * @brief Decodes a MsgPack payload and emits frameDecoded if valid.
+     * @brief Decodes one complete MsgPack frame payload. Used by UDP after
+     *        datagram-level frame validation.
      * @param data Raw MsgPack bytes representing a single frame.
      */
     void processMsgPackData(const QByteArray &data);
+
+private:
+    SerialFrameExtractor m_frameExtractor;
 
     /**
      * @brief Unpacks a MsgPack byte array into a DecodedFrame.

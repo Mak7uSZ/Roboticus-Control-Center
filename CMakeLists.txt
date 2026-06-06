@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 1. Find Packages
-find_package(Qt6 REQUIRED COMPONENTS Quick Graphs SerialPort Gui Network)
+find_package(Qt6 REQUIRED COMPONENTS Quick Graphs SerialPort Gui Network Test)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -121,6 +121,41 @@ target_link_libraries(appRoboticus_Data_Visualiser
         Qt6::Network
         qmsgpack
 )
+
+enable_testing()
+
+qt_add_executable(communication_robustness_tests
+    "tests/CommunicationRobustnessTest.cpp"
+    "include/io/UDPConnection.h"
+    "src/io/UDPConnection.cpp"
+    "include/io/SerialParser.h"
+    "src/io/SerialParser.cpp"
+    "include/io/SerialPortManager.h"
+    "src/io/SerialPortManager.cpp"
+    "include/parser/SerialFrameExtractor.h"
+    "src/parser/SerialFrameExtractor.cpp"
+    "include/parser/FrameTypes.h"
+)
+
+target_include_directories(communication_robustness_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/io"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/parser"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/models"
+    "libs"
+)
+
+target_link_libraries(communication_robustness_tests
+    PRIVATE
+        Qt6::Test
+        Qt6::Network
+        Qt6::SerialPort
+        Qt6::Gui
+        Qt6::Quick
+        qmsgpack
+)
+
+add_test(NAME communication_robustness_tests COMMAND communication_robustness_tests)
 
 # 7. OS Specific Configuration
 set_target_properties(appRoboticus_Data_Visualiser PROPERTIES

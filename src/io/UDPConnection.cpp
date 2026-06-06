@@ -8,6 +8,62 @@
 UDPConnection::UDPConnection(QObject *parent) : QObject(parent) {
 }
 
+bool UDPConnection::extractPayloadFromDatagram(const QByteArray &datagram,
+                                               QByteArray *payload,
+                                               QString *errorMessage) {
+  if (payload) {
+    payload->clear();
+  }
+
+  const int datagramSize = datagram.size();
+
+  auto reject = [errorMessage](const QString &message) {
+    if (errorMessage) {
+      *errorMessage = message;
+    }
+    return false;
+  };
+
+  if (datagramSize < 3) {
+    return reject(QString("UDP datagram is too small for a frame header: %1 byte(s).")
+                      .arg(datagramSize));
+  }
+
+  const auto *bytes =
+      reinterpret_cast<const unsigned char *>(datagram.constData());
+
+  if (bytes[0] != FrameStartByte) {
+    const QString actualStartByte =
+        QString("0x%1").arg(bytes[0], 2, 16, QLatin1Char('0')).toUpper();
+    return reject(QString("UDP datagram does not start with frame byte 0xFD "
+                          "(got %1).")
+                      .arg(actualStartByte));
+  }
+
+  const int payloadLength = bytes[1] | (bytes[2] << 8);
+  const int expectedDatagramSize = 3 + payloadLength;
+
+  if (datagramSize != expectedDatagramSize) {
+    return reject(QString("UDP frame size mismatch: datagram has %1 byte(s), "
+                          "header declares %2 payload byte(s), expected %3 byte(s).")
+                      .arg(datagramSize)
+                      .arg(payloadLength)
+                      .arg(expectedDatagramSize));
+  }
+
+  if (datagramSize > MaxAcceptedDatagramSize) {
+    return reject(QString("UDP frame is too large: %1 byte(s), maximum accepted "
+                          "datagram size is %2 byte(s).")
+                      .arg(datagramSize)
+                      .arg(MaxAcceptedDatagramSize));
+  }
+
+  if (payload) {
+    *payload = datagram.mid(3, payloadLength);
+  }
+  return true;
+}
+
 bool UDPConnection::startListening(quint16 port) {
   if (port < 1 || port > 65535 ) {
     emit errorOccurred("UDP port must be between 1 and 65535.");
@@ -86,33 +142,34 @@ void UDPConnection::readPendingDatagrams() {
     return;
   }
 
-  bool receivedAnyDatagram = false;
-
   while (m_socket->hasPendingDatagrams()) {
     const QNetworkDatagram datagram = m_socket->receiveDatagram();
     if (!datagram.isValid()) {
-      emit errorOccurred("Received an invalid UDP datagram.");
+      qWarning() << "Received an invalid UDP datagram.";
       continue;
     }
 
     const QByteArray data = datagram.data();
-    const QString firstByte =
-        data.isEmpty()
-            ? QStringLiteral("<empty>")
-            : QStringLiteral("0x%1")
-                  .arg(static_cast<quint8>(data.at(0)), 2, 16,
-                       QLatin1Char('0'))
-                  .toUpper();
-    qDebug() << "UDP datagram received size" << data.size() << "first byte"
-             << firstByte;
 
     ++m_packetsReceived;
     m_bytesReceived += static_cast<quint64>(data.size());
     m_lastSenderAddress = datagram.senderAddress().toString();
     m_lastSenderPort = datagram.senderPort();
 
-    receivedAnyDatagram = true;
-    emit rawDataReceived(data);
+    QByteArray payload;
+    QString validationError;
+    if (!extractPayloadFromDatagram(data, &payload, &validationError)) {
+      qWarning().noquote()
+          << QString("Discarding UDP datagram from %1:%2: %3")
+                 .arg(m_lastSenderAddress)
+                 .arg(m_lastSenderPort)
+                 .arg(validationError);
+      continue;
+    }
+
+    qDebug() << "Accepted UDP frame datagram size" << data.size()
+             << "payload size" << payload.size();
+    emit rawDataReceived(payload);
   }
 }
 
