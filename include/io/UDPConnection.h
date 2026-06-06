@@ -16,6 +16,8 @@ class UDPConnection : public QObject {
 public:
     explicit UDPConnection(QObject *parent = nullptr);
 
+    static constexpr int MaxAcceptedDatagramSize = 1400;
+
     bool isListening() const { return m_listening; }
     quint16 port() const { return m_port; }
     quint64 packetsReceived() const { return m_packetsReceived; }
@@ -27,7 +29,16 @@ public:
     Q_INVOKABLE void stopListening();
     Q_INVOKABLE void clearStatistics();
 
+    static bool extractPayloadFromDatagram(const QByteArray &datagram,
+                                           QByteArray *payload,
+                                           QString *errorMessage = nullptr);
+
 signals:
+    /**
+     * @brief Emitted with the MsgPack payload from one validated UDP frame
+     *        datagram. UDP input is datagram/frame based and is never buffered
+     *        together with other datagrams.
+     */
     void rawDataReceived(const QByteArray &data);
     void listeningChanged();
     void portChanged();
@@ -40,6 +51,7 @@ private slots:
 
 private:
     static constexpr int NoDatagramsTimeoutMs = 10000;
+    static constexpr quint8 FrameStartByte = 0xFD;
 
     QUdpSocket *m_socket = nullptr;
     bool m_listening = false;

@@ -100,7 +100,7 @@ public:
     /** @brief Switches to wireless input mode and closes any open serial port. */
     Q_INVOKABLE void switchToWirelessMode();
 
-    /** @brief Starts UDP listening in wireless mode and feeds datagrams to the existing parser. */
+    /** @brief Starts UDP listening in wireless mode and feeds validated frame payloads to the parser. */
     Q_INVOKABLE bool startWirelessMonitor(int port);
 
     /** @brief Stops UDP listening if active. */
@@ -148,7 +148,7 @@ private:
     /** @brief Disconnects serial bytes from the parser. */
     void disconnectSerialInputFromParser();
 
-    /** @brief Connects UDP datagrams to the parser and a wireless debug log. */
+    /** @brief Connects validated UDP frame payloads to the parser. */
     void connectUdpInputToParser();
 
     /** @brief Disconnects UDP datagrams from the parser. */

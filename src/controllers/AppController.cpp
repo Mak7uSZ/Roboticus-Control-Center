@@ -145,7 +145,7 @@ void AppController::connectUdpInputToParser() {
 
   m_udpParserConnection =
       connect(m_udpConnection, &UDPConnection::rawDataReceived, m_parser,
-              &SerialParser::onRawDataReady, Qt::UniqueConnection);
+              &SerialParser::processMsgPackData, Qt::UniqueConnection);
   if (!m_udpParserConnection) {
     return;
   }

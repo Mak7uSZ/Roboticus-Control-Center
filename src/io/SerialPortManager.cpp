@@ -12,12 +12,19 @@ SerialPortManager::SerialPortManager(QObject *parent) : QObject(parent) {
 }
 
 bool SerialPortManager::connectToPort() {
+  const bool wasConnected = m_serial.isOpen();
+
   if (m_serial.isOpen()) {
+    disconnect(&m_serial, &QSerialPort::readyRead, this,
+               &SerialPortManager::readData);
     m_serial.close();
   }
 
   if (m_serial.portName().isEmpty()) {
     qDebug() << "No COM port selected";
+    if (wasConnected) {
+      emit connectionChanged();
+    }
     emit errorOccurred(
         "No COM port selected. Please choose a port to connect.");
     return false;
@@ -25,13 +32,17 @@ bool SerialPortManager::connectToPort() {
 
   if (m_serial.baudRate() <= 0) {
     qDebug() << "Failed to set baudrate";
+    if (wasConnected) {
+      emit connectionChanged();
+    }
     emit errorOccurred("Failed to set baud rate. Please check your settings.");
     return false;
   }
 
   configureDefaultSettings();
+  m_serial.clearError();
 
-  bool success = m_serial.open(QIODevice::ReadOnly);
+  const bool success = m_serial.open(QIODevice::ReadOnly);
 
   if (success) {
     m_serial.setDataTerminalReady(true);
@@ -46,12 +57,24 @@ bool SerialPortManager::connectToPort() {
     emit connectionChanged();
     emit portChanged();
   } else {
-    qDebug() << "Error:" << m_serial.error() << m_serial.errorString()
+    const QString portName = m_serial.portName();
+    const QString errorString = m_serial.errorString();
+    disconnect(&m_serial, &QSerialPort::readyRead, this,
+               &SerialPortManager::readData);
+    m_serial.close();
+
+    qDebug() << "Error:" << m_serial.error() << errorString
              << "\nCheck if you have a serial monitor open somewhere else";
-    qDebug() << "Port:" << m_serial.portName()
+    qDebug() << "Port:" << portName
              << "Baud:" << m_serial.baudRate();
-    emit errorOccurred("Failed to connect to port. Please check if the port is "
-                       "correct and not in use by another application.");
+    if (wasConnected) {
+      emit connectionChanged();
+    }
+    emit errorOccurred(QString("Failed to open %1: %2")
+                           .arg(portName)
+                           .arg(errorString.isEmpty()
+                                    ? QStringLiteral("Unknown serial error")
+                                    : errorString));
   }
 
   return success;
@@ -98,6 +121,8 @@ bool SerialPortManager::setComPort(QString port) {
 
 void SerialPortManager::disconnectPort() {
   if (m_serial.isOpen()) {
+    disconnect(&m_serial, &QSerialPort::readyRead, this,
+               &SerialPortManager::readData);
     m_serial.close();
     emit connectionChanged();
     qDebug() << "Disconnected from" << m_serial.portName();
@@ -112,6 +137,8 @@ void SerialPortManager::handleSerialError(QSerialPort::SerialPortError error) {
   if (error == QSerialPort::ResourceError ||
       error == QSerialPort::DeviceNotFoundError) {
     qDebug() << "Serial connection lost:" << m_serial.errorString();
+    disconnect(&m_serial, &QSerialPort::readyRead, this,
+               &SerialPortManager::readData);
     m_serial.close();
     emit connectionChanged();
     emit errorOccurred("Serial connection lost.");
